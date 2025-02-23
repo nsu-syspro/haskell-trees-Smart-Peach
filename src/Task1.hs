@@ -62,7 +62,7 @@ forder :: Order     -- ^ Order of tree traversal
        -> Maybe a   -- ^ Optional leaf value
        -> Forest a  -- ^ List of trees to traverse
        -> [a]       -- ^ List of values in specified tree order
-forder _ _ _ []                    = [] -- Is this ugly? Looks ugly :( Is it possible to use map in this function???
+forder _ _ _ []                    = [] -- Is this func ugly?
 forder order _ leaf [tree]         = torder order leaf tree
 forder order separator leaf (x:xs) = case separator of
                                       Just sep -> torder order leaf x ++ [sep] ++ forder order separator leaf xs
