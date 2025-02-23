@@ -37,7 +37,13 @@ torder :: Order    -- ^ Order of resulting traversal
        -> Maybe a  -- ^ Optional leaf value
        -> Tree a   -- ^ Tree to traverse
        -> [a]      -- ^ List of values in specified order
-torder = error "TODO: define torder"
+torder _ leaf (Leaf) = case leaf of -- is this func ugly?? 
+                        Just x -> [x]
+                        Nothing -> []
+torder order leaf (Branch a l r) = case order of
+                        PreOrder  -> a : (torder order leaf l) ++ (torder order leaf r)
+                        InOrder   -> (torder order leaf l) ++ a : (torder order leaf r)
+                        PostOrder -> (torder order leaf l) ++ (torder order leaf r) ++ [a]
 
 -- | Returns values of given 'Forest' separated by optional separator
 -- where each 'Tree' is traversed in specified 'Order' with optional leaf value
@@ -56,5 +62,10 @@ forder :: Order     -- ^ Order of tree traversal
        -> Maybe a   -- ^ Optional leaf value
        -> Forest a  -- ^ List of trees to traverse
        -> [a]       -- ^ List of values in specified tree order
-forder = error "TODO: define forder"
-
+forder _ _ _ []                    = [] -- Is this func ugly?
+forder order _ leaf [tree]         = torder order leaf tree
+forder order separator leaf (x:xs) = case separator of
+                                      Just sep -> torder order leaf x ++ [sep] ++ forder order separator leaf xs
+                                      Nothing  -> torder order leaf x ++ forder order separator leaf xs
+                                        
+                                      

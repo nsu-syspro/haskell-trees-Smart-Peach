@@ -7,13 +7,14 @@ module Task2 where
 -- that are not supposed to be used in this assignment
 import Prelude hiding (compare, foldl, foldr, Ordering(..))
 
-import Task1 (Tree(..))
+import Task1 (Tree(..), Order(..), torder)
 
 -- * Type definitions
 
 -- | Ordering enumeration
 data Ordering = LT | EQ | GT
-  deriving Show
+  deriving (Show, Eq)
+
 
 -- | Binary comparison function indicating whether first argument is less, equal or
 -- greater than the second one (returning 'LT', 'EQ' or 'GT' respectively)
@@ -33,7 +34,10 @@ type Cmp a = a -> a -> Ordering
 -- GT
 --
 compare :: Ord a => Cmp a
-compare = error "TODO: define compare"
+compare first second
+    | first < second = LT
+    | first > second = GT
+    | otherwise = EQ
 
 -- | Conversion of list to binary search tree
 -- using given comparison function
@@ -46,7 +50,8 @@ compare = error "TODO: define compare"
 -- Leaf
 --
 listToBST :: Cmp a -> [a] -> Tree a
-listToBST = error "TODO: define listToBST"
+listToBST _ [] = Leaf
+listToBST cmp (x:xs) = tinsert cmp x (listToBST cmp xs)
 
 -- | Conversion from binary search tree to list
 --
@@ -62,7 +67,7 @@ listToBST = error "TODO: define listToBST"
 -- []
 --
 bstToList :: Tree a -> [a]
-bstToList = error "TODO: define bstToList"
+bstToList tree = torder InOrder Nothing tree 
 
 -- | Tests whether given tree is a valid binary search tree
 -- with respect to given comparison function
@@ -77,8 +82,24 @@ bstToList = error "TODO: define bstToList"
 -- False
 --
 isBST :: Cmp a -> Tree a -> Bool
-isBST = error "TODO: define isBST"
+isBST cmp tree = isBSTWithLimits cmp tree Nothing Nothing
 
+isBSTWithLimits :: Cmp a -> Tree a -> Maybe a -> Maybe a -> Bool
+isBSTWithLimits _ Leaf _ _ = True
+isBSTWithLimits cmp (Branch root l r) lowerLimit upperLimit
+  | doesSuitLimits cmp root lowerLimit upperLimit = (isBSTWithLimits cmp l lowerLimit (Just root)) && (isBSTWithLimits cmp r (Just root) upperLimit)
+  | otherwise = False
+
+doesSuitLimits :: Cmp a -> a -> Maybe a -> Maybe a -> Bool
+doesSuitLimits cmp val lowerLimit upperLimit = lowCheck && upperCheck
+  where
+    lowCheck = case lowerLimit of
+                  Just lower -> (cmp val lower == GT)
+                  Nothing -> True 
+    upperCheck = case upperLimit of
+                  Just upper -> (cmp val upper == LT)
+                  Nothing -> True
+                  
 -- | Searches given binary search tree for
 -- given value with respect to given comparison
 --
@@ -95,7 +116,11 @@ isBST = error "TODO: define isBST"
 -- Just 2
 --
 tlookup :: Cmp a -> a -> Tree a -> Maybe a
-tlookup = error "TODO: define tlookup"
+tlookup _ _ Leaf = Nothing
+tlookup cmp val (Branch root l r)
+  | cmp val root == LT = tlookup cmp val l
+  | cmp val root == GT = tlookup cmp val r
+  | otherwise = Just root
 
 -- | Inserts given value into given binary search tree
 -- preserving its BST properties with respect to given comparison
@@ -113,7 +138,11 @@ tlookup = error "TODO: define tlookup"
 -- Branch 'a' Leaf Leaf
 --
 tinsert :: Cmp a -> a -> Tree a -> Tree a
-tinsert = error "TODO: define tinsert"
+tinsert _ n Leaf = (Branch n Leaf Leaf)
+tinsert cmp n (Branch node l r)
+  | cmp n node == LT = Branch node (tinsert cmp n l) r
+  | cmp n node == GT = Branch node l (tinsert cmp n r)
+  | otherwise = (Branch n l r)
 
 -- | Deletes given value from given binary search tree
 -- preserving its BST properties with respect to given comparison
@@ -129,4 +158,21 @@ tinsert = error "TODO: define tinsert"
 -- Leaf
 --
 tdelete :: Cmp a -> a -> Tree a -> Tree a
-tdelete = error "TODO: define tdelete"
+tdelete _ _ Leaf = Leaf
+tdelete cmp n (Branch a l r)
+  | cmp n a == LT = (Branch a (tdelete cmp n l) r)
+  | cmp n a == GT = (Branch a l (tdelete cmp n r))
+  | otherwise = deleteRoot cmp (Branch a l r)
+
+deleteRoot :: Cmp a -> Tree a -> Tree a
+deleteRoot _ Leaf = Leaf
+deleteRoot _ (Branch _ Leaf Leaf) = Leaf
+deleteRoot _ (Branch _ Leaf r) = r
+deleteRoot _ (Branch _ l Leaf) = l
+deleteRoot cmp (Branch _ l r) = (Branch (findMin r) l (tdelete cmp (findMin r) r))
+
+findMin :: Tree a -> a
+findMin (Branch a l _) = case l of
+  Leaf -> a
+  (Branch _ _ _) -> findMin l
+findMin Leaf = error "Cannot find min in empty Tree"
