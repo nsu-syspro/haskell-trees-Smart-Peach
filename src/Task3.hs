@@ -60,7 +60,7 @@ mlookup :: Ord k => k -> Map k v -> Maybe v
 mlookup k m = case (tlookup compareKeys (k, undefined) m) of
     Just (_, v) -> Just v
     Nothing -> Nothing
--- mlookup = error "Implement pls"
+    
 -- | Inserts given key and value into given 'Map'
 --
 -- If given key was already present in the 'Map'

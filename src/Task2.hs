@@ -82,20 +82,24 @@ bstToList tree = torder InOrder Nothing tree
 -- False
 --
 isBST :: Cmp a -> Tree a -> Bool
-isBST cmp tree = isBSTWithLimits  cmp tree Nothing Nothing
--- redefine comparison operator for Nothing and au other type
+isBST cmp tree = isBSTWithLimits cmp tree Nothing Nothing
+
 isBSTWithLimits :: Cmp a -> Tree a -> Maybe a -> Maybe a -> Bool
 isBSTWithLimits _ Leaf _ _ = True
-isBSTWithLimits cmp (Branch root l r) Nothing Nothing = (isBSTWithLimits cmp l Nothing (Just root)) && (isBSTWithLimits cmp r (Just root) Nothing)
-isBSTWithLimits cmp (Branch root l r) (Just lowerLimit) Nothing
-  | cmp root lowerLimit == GT = (isBSTWithLimits cmp l (Just lowerLimit) (Just root)) && (isBSTWithLimits cmp r (Just root) Nothing)
+isBSTWithLimits cmp (Branch root l r) lowerLimit upperLimit
+  | doesSuitLimits cmp root lowerLimit upperLimit = (isBSTWithLimits cmp l lowerLimit (Just root)) && (isBSTWithLimits cmp r (Just root) upperLimit)
   | otherwise = False
-isBSTWithLimits cmp (Branch root l r) Nothing (Just upperLimit)
-  | cmp root upperLimit == LT = (isBSTWithLimits cmp l Nothing (Just root)) && (isBSTWithLimits cmp r (Just root) (Just upperLimit))
-  | otherwise = False
-isBSTWithLimits cmp (Branch root l r) (Just lowerLimit) (Just upperLimit)
-  | cmp root upperLimit == LT && cmp root lowerLimit == GT = (isBSTWithLimits cmp l (Just lowerLimit) (Just root)) && (isBSTWithLimits cmp r (Just root) (Just upperLimit))
-  | otherwise = False
+
+doesSuitLimits :: Cmp a -> a -> Maybe a -> Maybe a -> Bool
+doesSuitLimits cmp val lowerLimit upperLimit = lowCheck && upperCheck
+  where
+    lowCheck = case lowerLimit of
+                  Just lower -> (cmp val lower == GT)
+                  Nothing -> True 
+    upperCheck = case upperLimit of
+                  Just upper -> (cmp val upper == LT)
+                  Nothing -> True
+                  
 -- | Searches given binary search tree for
 -- given value with respect to given comparison
 --

@@ -41,9 +41,9 @@ torder _ leaf (Leaf) = case leaf of -- is this func ugly??
                         Just x -> [x]
                         Nothing -> []
 torder order leaf (Branch a l r) = case order of
-                                    PreOrder  -> a : (torder order leaf l) ++ (torder order leaf r)
-                                    InOrder   -> (torder order leaf l) ++ a : (torder order leaf r)
-                                    PostOrder -> (torder order leaf l) ++ (torder order leaf r) ++ [a]
+                        PreOrder  -> a : (torder order leaf l) ++ (torder order leaf r)
+                        InOrder   -> (torder order leaf l) ++ a : (torder order leaf r)
+                        PostOrder -> (torder order leaf l) ++ (torder order leaf r) ++ [a]
 
 -- | Returns values of given 'Forest' separated by optional separator
 -- where each 'Tree' is traversed in specified 'Order' with optional leaf value
