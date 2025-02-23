@@ -83,7 +83,7 @@ bstToList tree = torder InOrder Nothing tree
 --
 isBST :: Cmp a -> Tree a -> Bool
 isBST cmp tree = isBSTWithLimits  cmp tree Nothing Nothing
-
+-- redefine comparison operator for Nothing and au other type
 isBSTWithLimits :: Cmp a -> Tree a -> Maybe a -> Maybe a -> Bool
 isBSTWithLimits _ Leaf _ _ = True
 isBSTWithLimits cmp (Branch root l r) Nothing Nothing = (isBSTWithLimits cmp l Nothing (Just root)) && (isBSTWithLimits cmp r (Just root) Nothing)
